@@ -234,7 +234,7 @@ class App extends Component {
 
 		return (
 			<div className="App">
-				<TheNavbar account={account} wfs={wfs} />
+				<TheNavbar account={account} />
 
 				<ButtonGroup toggle>
 					{this.radios.map((radio, idx) => (

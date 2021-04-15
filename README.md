@@ -9,4 +9,4 @@ truffle migrate
 ## install dapp side
 cd client;npm install
 ## run client
-;npm start
+npm start

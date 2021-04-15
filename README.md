@@ -6,5 +6,7 @@ npm install @openzeppelin/contracts
 truffle compile --all
 ## migrate
 truffle migrate
-## run dapp
-cd client;npm start
+## install dapp side
+cd client;npm install
+## run client
+;npm start

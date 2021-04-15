@@ -2,7 +2,6 @@
 
 ## install
 
-truffle compile --all
 truffle migrate
 
 ## run dapp

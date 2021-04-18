@@ -7,11 +7,20 @@ class AuthorizeAccount extends Component {
 	handleClick = async (event) => {
 		event.preventDefault()
 
-		//		const address = ReactDOM.findDOMNode('address').value;
-		const address = this.address.value
-
-		await this.props.registerVoter(address)
+		await this.props.contract.methods
+		.registerVoter(this.address.value)
+		.send({ from: this.props.account })
 	}
+
+
+
+
+	registerVoter = async (address) => {
+		// Interaction avec le smart contract pour ajouter un compte
+	}
+
+
+	
 
 	render () {
 			return (

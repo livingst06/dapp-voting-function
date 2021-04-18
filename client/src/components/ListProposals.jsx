@@ -82,6 +82,8 @@ class ListProposals extends Component {
 		localArray[parseInt(event.returnValues.proposalId)].voteCount++
 		
 		this.setState({ proposals: localArray})
+
+		console.log('addVote:event.returnValues.proposalId',event.returnValues.proposalId)
 	}
 
 	addPropal = (event) => {
@@ -90,6 +92,7 @@ class ListProposals extends Component {
 		const localArray = [...proposals, event.returnValues.propal]
 
 		this.setState({ proposals: localArray })
+		console.log('addPropal:event.returnValues.propal',event.returnValues.propal)
 
 	}
 

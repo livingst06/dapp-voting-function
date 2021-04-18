@@ -6,11 +6,13 @@ class MakeProposal extends Component {
 	handleClick = async (event) => {
 		event.preventDefault()
 
-		const propal = this.proposal.value
+		
 
-		if (null !== this.props && null !== this.props.giveProposal) {
-			await this.props.giveProposal(propal)
-		}
+
+		await this.props.contract.methods
+			.giveProposal(this.proposal.value)
+			.send({ from: this.props.account })
+		
 	}
 
 	render() {

@@ -112,15 +112,7 @@ class App extends Component {
 		}
 
 	}
-
-
-	updateProposals = (event) => {
-		const { proposals } = this.state
-
-		proposals[event.returnValues.proposalId].voteCount++
-		this.setState({ proposals })
-	}
-
+ 
 	radios = [
 		{
 			name: 'Enregistrement des votants',
@@ -165,13 +157,6 @@ class App extends Component {
 		}
 	}
 
-	registerVoter = async (address) => {
-		// Interaction avec le smart contract pour ajouter un compte
-		await this.state.contract.methods
-			.registerVoter(address)
-			.send({ from: this.state.account })
-	}
-
 	updateVotingProcess = async (status) => {
 		// Interaction avec le smart contract pour changer statuts du process de voting
 
@@ -210,14 +195,6 @@ class App extends Component {
 			default:
 				break
 		}
-	}
-
-
-	giveProposal = async (descr) => {
-		// Interaction avec le smart contract pour ajouter un compte
-		await this.state.contract.methods
-			.giveProposal(descr)
-			.send({ from: this.state.account })
 	}
 
 	render() {
@@ -260,11 +237,11 @@ class App extends Component {
 				<br></br>
 				{wfs !== 'RegisteringVoters' ?<ListProposals web3={web3} contract={contract} />:''}
 				<br></br>
-				{owner === account && wfs === 'RegisteringVoters' ?	<AuthorizeAccount registerVoter={this.registerVoter} />:''}
+				{owner === account && wfs === 'RegisteringVoters' ?	<AuthorizeAccount  contract={contract} account={account} />:''}
 				<br></br>
-				{wfs === 'ProposalsRegistrationStarted' ? <MakeProposal giveProposal={this.giveProposal} />:''}
+				{wfs === 'ProposalsRegistrationStarted' ? <MakeProposal  contract={contract} account={account} />:''}
 				<br></br>
-				{wfs === 'VotingSessionStarted' ? <VoteFor web3={web3} contract={contract} account={account}/>:''}
+				{wfs === 'VotingSessionStarted' ? <VoteFor contract={contract} account={account}/>:''}
 				<br></br>
 				{wfs === 'VotesTallied' ? <TheWinnerBox contract={contract} />:''}
 			</div>

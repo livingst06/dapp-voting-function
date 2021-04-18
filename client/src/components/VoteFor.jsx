@@ -13,26 +13,6 @@ class VoteFor extends Component {
 	componentDidMount = async () => {
 		try {
 
-
-			//subscribe to event Voted
-			this.props.contract.events.ProposalRegistered(
-				{
-					fromBlock: this.props.web3.eth.getBlock('latest').number,
-				},
-				function (error, event) {
-					//console.log('event after voted',event)
-				}
-		)
-		.on('connected', function (subscriptionId) {})
-		.on('data', (event) => this.addPropal(event))
-		.on('changed', function (event) {
-				// remove event from local database
-		})
-		.on('error', function (error, receipt) {
-				// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-				console.log('on error', receipt) // same results as the optional callback above
-		})
-
 		// récupérer la liste des propositions
 		const proposals = await this.props.contract.methods.getProposals().call()
 		// Mettre à jour le state

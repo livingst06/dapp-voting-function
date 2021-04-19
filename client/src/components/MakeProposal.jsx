@@ -3,18 +3,20 @@ import React from 'react'
 import { Card, Form, Button } from 'react-bootstrap'
 
 function MakeProposal(props) {
-
-
 	let inputProposal = ''
-	
+
 	const handleClick = async (event) => {
 		event.preventDefault()
 
-		await props.contract.methods
-			.giveProposal(inputProposal)
-			.send({ from: props.account })
+		try {
+			await props.contract.methods
+				.giveProposal(inputProposal)
+				.send({ from: props.account })
+		} catch (error) {
+			console.error(error)
+		}
 	}
-	
+
 	const handleChange = (event) => {
 		event.preventDefault()
 
@@ -29,10 +31,7 @@ function MakeProposal(props) {
 				</Card.Header>
 				<Card.Body>
 					<Form.Group>
-						<Form.Control onChange={handleChange}
-							type="text"
-							id="proposal"
-						/>
+						<Form.Control onChange={handleChange} type="text" id="proposal" />
 					</Form.Group>
 					<Button onClick={handleClick} variant="dark">
 						{' '}

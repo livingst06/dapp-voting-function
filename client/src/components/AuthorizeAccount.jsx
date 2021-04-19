@@ -1,54 +1,49 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
-import React, {Component} from 'react'
+import React from 'react'
 import { Card, Form, Button } from 'react-bootstrap'
 
-class AuthorizeAccount extends Component {
+function AuthorizeAccount(props) {
 
-	handleClick = async (event) => {
+	let localAddress = ''
+
+	const handleClick = async (event) => {
 		event.preventDefault()
 
-		await this.props.contract.methods
-		.registerVoter(this.address.value)
-		.send({ from: this.props.account })
+		await props.contract.methods
+		.registerVoter(localAddress)
+		.send({ from: props.account })
 	}
 
 
+	const handleChange = (event) => {
+		event.preventDefault()
 
-
-	registerVoter = async (address) => {
-		// Interaction avec le smart contract pour ajouter un compte
+		localAddress = event.target.value
 	}
 
-
+	return (
 	
-
-	render () {
-			return (
-			
-			<div style={{ display: 'flex', justifyContent: 'center' }}>
-				<Card style={{ width: '50rem' }}>
-						<Card.Header>
-							<strong>Autoriser un nouveau compte</strong>
-						</Card.Header>
-						<Card.Body>
-							<Form.Group>
-								<Form.Control
-									type="text"
-									id="address"
-									ref={(input) => {
-										this.address = input
-									}}
-								/>
-							</Form.Group>
-							<Button onClick={this.handleClick} variant="dark">
-								{' '}
-								Autoriser{' '}
-							</Button>
-						</Card.Body>
-				</Card>
-			</div>
-		)
-	}		
+		<div style={{ display: 'flex', justifyContent: 'center' }}>
+			<Card style={{ width: '50rem' }}>
+					<Card.Header>
+						<strong>Autoriser un nouveau compte</strong>
+					</Card.Header>
+					<Card.Body>
+						<Form.Group>
+							<Form.Control onChange={handleChange}
+								type="text"
+								id="address"
+									
+							/>
+						</Form.Group>
+						<Button onClick={handleClick} variant="dark">
+							{' '}
+							Autoriser{' '}
+						</Button>
+					</Card.Body>
+			</Card>
+		</div>
+	)
 }
 
 export default AuthorizeAccount

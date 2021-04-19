@@ -1,7 +1,7 @@
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-import React, { Component } from 'react'
+import React, { useState, useEffect } from 'react'
 import {ButtonGroup,ToggleButton} from 'react-bootstrap'
 
 import Voting from './contracts/Voting.json'
@@ -14,54 +14,77 @@ import AuthorizeAccount from './components/AuthorizeAccount'
 import VoteFor from './components/VoteFor'
 import TheWinnerBox from './components/TheWinnerBox'
 
-class App extends Component {
-	state = {
-		web3: null,
-		account: null,
-		contract: null,
-		owner: null,
-		wfs: null,
-		adresses: [],
-		proposals: [],
-		loading: null,
+function App() {
+	
+	const [ web3, setWeb3] 			= useState(null)
+	const [ account, setAccount] 	= useState(null)
+	const [ contract, setContract] 	= useState(null)
+	const [ owner, setOwner] 		= useState(null)
+	const [ wfs, setWfs] 			= useState(null)
+	const [ loading, setLoading]	= useState(true)
+
+
+	let subId = null
+
+	useEffect(() => {
+		runInit()
+
+		return () => {
+			cleanup()
+		}
+
+
+
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+
+	const cleanup = () => {
+
+		subId.unsubscribe()
+		
 	}
 
-	componentDidMount = async () => {
+
+
+
+	const runInit = async () => {
+				
 		try {
 			// Get network provider and web3 instance.
-			const web3 = await getWeb3()
+			const _web3 = await getWeb3()
 
 			// set the current account
-			const accounts = await web3.eth.getAccounts()
+			const _accounts = await _web3.eth.getAccounts()
 
 			// Get the contract instance.
-			const networkId = await web3.eth.net.getId()
+			const networkId = await _web3.eth.net.getId()
 			const deployedNetwork = Voting.networks[networkId]
-			const contract = new web3.eth.Contract(
+			const _contract = new _web3.eth.Contract(
 				Voting.abi,
 				deployedNetwork && deployedNetwork.address
 			)
 
-			const owner = await contract.methods.owner().call()
+			const _owner = await _contract.methods.owner().call()
 
 
 			// récupérer le statut etat du vote et le mettre dans le state
-			const wfs = await contract.methods.getWorkFlowStatus().call()
+			const _wfs = await _contract.methods.getWorkFlowStatus().call()
 
 
 
-
+ 
 			//subscribe to event Voted
-			contract.events.WorkflowStatusChange(
+			subId = _contract.events.WorkflowStatusChange(
 				{
-					fromBlock: web3.eth.getBlock('latest').number,
+					fromBlock: _web3.eth.getBlock('latest').number,
 				},
 				function (error, event) {
 					//console.log('event after voted',event)
 				}
 			)
 			.on('connected', function (subscriptionId) {})
-			.on('data', (event) => this.handleWfsChange(event))
+			.on('data', (event) => handleWfsChange(event))
 			.on('changed', function (event) {
 					// remove event from local database
 			})
@@ -72,9 +95,12 @@ class App extends Component {
 
 
 
-
-			this.setState({web3, accounts, wfs, account: accounts[0], contract, owner})
-
+			setWeb3(_web3)
+			setAccount(_accounts[0])
+			setContract(_contract)
+			setWfs(_wfs)
+			setOwner(_owner)
+			setLoading(false)
 
 		} catch (error) {
 			// Catch any errors for any of the above operations.
@@ -82,30 +108,31 @@ class App extends Component {
 				`Non-Ethereum browser detected. Can you please try to install MetaMask before starting.`
 			)
 			console.error(error)
-			this.setState({ loading: false })
+			setLoading(false)
 		}
-	}
 
-	handleWfsChange = (event) => {
+	}
+ 
+	const handleWfsChange = (event) => {
 		
 		switch (parseInt(event.returnValues.newStatus)) {
 			case 0:
-				this.setState({ wfs: 'RegisteringVoters' })
+				setWfs('RegisteringVoters')
 				break
 			case 1:
-				this.setState({ wfs: 'ProposalsRegistrationStarted' })
+				setWfs('ProposalsRegistrationStarted')
 				break
 			case 2:
-				this.setState({ wfs: 'ProposalsRegistrationEnded' })
+				setWfs('ProposalsRegistrationEnded')
 				break
 			case 3:
-				this.setState({ wfs: 'VotingSessionStarted' })
+				setWfs('VotingSessionStarted')
 				break
 			case 4:
-				this.setState({ wfs: 'VotingSessionEnded' })
+				setWfs('VotingSessionEnded')
 				break
 			case 5:
-				this.setState({ wfs: 'VotesTallied' })
+				setWfs('VotesTallied')
 				break
 			default:
 				break
@@ -113,7 +140,7 @@ class App extends Component {
 
 	}
  
-	radios = [
+	const radios = [
 		{
 			name: 'Enregistrement des votants',
 			value: 'RegisteringVoters',
@@ -137,84 +164,81 @@ class App extends Component {
 		},
 	]
 
-	handleToggleChange = async (event) => {
+	const handleToggleChange = async (event) => {
 		// Only owner of the contract can change this toggle.
 		// other users can only see toggle position but cannot change it.
-		if (this.state.account !== this.state.owner) return
+		if (account !== owner) return
 
 		const targetting = event.currentTarget.value
 
 		try {
-			this.setState({ loading: true })
+			setLoading(true)
 
-			await this.updateVotingProcess(targetting)
+			await updateVotingProcess(targetting)
 
-			this.setState({ wfs: targetting, loading: false })
+			setWfs(targetting)
+			setLoading(false)
 		} catch (error) {
 			// Remettre le toggle a previous
 			//document.getElementById('radioToggle').value = previous
-			this.setState({ loading: false })
+			setLoading(false)
 		}
 	}
 
-	updateVotingProcess = async (status) => {
+	const updateVotingProcess = async (status) => {
 		// Interaction avec le smart contract pour changer statuts du process de voting
 
 		switch (status) {
 			case 'RegisteringVoters':
-				await this.state.contract.methods
+				await contract.methods
 					.startRegisteringVoters()
-					.send({ from: this.state.account })
+					.send({ from: account })
 				break
 			case 'ProposalsRegistrationStarted':
-				await this.state.contract.methods
+				await contract.methods
 					.startProposalRegistration()
-					.send({ from: this.state.account })
+					.send({ from: account })
 				break
 			case 'ProposalsRegistrationEnded':
-				await this.state.contract.methods
+				await contract.methods
 					.stopProposalRegistration()
-					.send({ from: this.state.account })
+					.send({ from: account })
 				break
 			case 'VotingSessionStarted':
-				await this.state.contract.methods
+				await contract.methods
 					.startVotingSession()
-					.send({ from: this.state.account })
+					.send({ from: account })
 				break
 			case 'VotingSessionEnded':
-				await this.state.contract.methods
+				await contract.methods
 					.stopVotingSession()
-					.send({ from: this.state.account })
+					.send({ from: account })
 				break
 			case 'VotesTallied':
 				// Afficher le div qui affiche le gagnant
-				await this.state.contract.methods
+				await contract.methods
 					.votesTallied()
-					.send({ from: this.state.account })
+					.send({ from: account })
 				break
 			default:
 				break
 		}
 	}
 
-	render() {
-		const { web3, owner, account, contract, wfs, loading } = this.state
+	if (!web3) {
+		return <div>please connect to metamask</div>
+	}
 
-		if (!web3) {
-			return <div>please connect to metamask</div>
-		}
-
-
-		if (loading) {
-			return <div>loading...</div>
-		}
-
-		return (
+	if (loading) {
+		return <div>loading...</div>
+	}
+ 
+	return (
 			<div className="App">
 				<TheNavbar account={account} />
 
 				<ButtonGroup toggle>
-					{this.radios.map((radio, idx) => (
+					{radios.map((radio, idx) => (
 						<ToggleButton
 							key={idx}
 							type="radio"
@@ -223,7 +247,7 @@ class App extends Component {
 							value={radio.value}
 							checked={wfs === radio.value}
 							disabled={owner !== account}
-							onChange={this.handleToggleChange}
+							onChange={handleToggleChange}
 						>
 							{radio.name}
 						</ToggleButton>
@@ -245,8 +269,8 @@ class App extends Component {
 				<br></br>
 				{wfs === 'VotesTallied' ? <TheWinnerBox contract={contract} />:''}
 			</div>
-		)
-	}
+	)
+	
 }
 
 export default App

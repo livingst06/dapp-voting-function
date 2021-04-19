@@ -1,44 +1,67 @@
-import  React, {Component} from 'react'
+import  React, {useState, useEffect} from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import {Card, ListGroup, Table } from 'react-bootstrap'
 
-class AuthorizedAccounts extends Component {
+function AuthorizedAccounts(props) {
 
-	state = { adresses: [], loading: true }
+
+	const [ adresses, setAdresses ] = useState([])
+	const [ loading, setLoading ] = useState(true)
 	
+	let subId = null
 
-	componentDidMount = async () => {
+
+	useEffect(() => {
+		runInit()
+		return () => {
+			cleanup()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+
+	const cleanup = () => {
+
+		subId.unsubscribe()
+		
+	}
+
+	const runInit = async () => {
 		try {
 
 
+
+			// récupérer la liste des comptes autorisés
+			const _adresses = await props.contract.methods.getAdresses().call()
+			// Mettre à jour le state
+
+
 			//subscribe to event Voted
-			this.props.contract.events.VoterRegistered(
+			subId = props.contract.events.VoterRegistered(
 				{
-					fromBlock: this.props.web3.eth.getBlock('latest').number,
+					fromBlock: props.web3.eth.getBlock('latest').number,
 				},
 				function (error, event) {
 					//console.log('event after voted',event)
 				}
-		)
-		.on('connected', function (subscriptionId) {})
-		.on('data', (event) => this.addAuthorizedAccount(event))
-		.on('changed', function (event) {
-				// remove event from local database
-		})
-		.on('error', function (error, receipt) {
-				// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-				console.log('on error', receipt) // same results as the optional callback above
-		})
+			)
+			.on('connected', function (subscriptionId) {})
+			.on('data', (event) => addAuthorizedAccount(event))
+			.on('changed', function (event) {
+					// remove event from local database
+			})
+			.on('error', function (error, receipt) {
+					// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+					console.log('on error', receipt) // same results as the optional callback above
+			})
 
 
-		// récupérer la liste des comptes autorisés
-		const adresses = await this.props.contract.methods.getAdresses().call()
-		// Mettre à jour le state
-		this.setState({ adresses, loading:false })
+			setAdresses(_adresses)
+			setLoading(false)
 
 			 
 		} catch (error) {
-			this.setState({ loading:false })
+			setLoading(false)
 
 			// Catch any errors for any of the above operations.
 			alert(
@@ -51,24 +74,19 @@ class AuthorizedAccounts extends Component {
 	}	
 
 
-	addAuthorizedAccount = (event) => {
-		const { adresses } = this.state
+	const addAuthorizedAccount = async (event) => {
+		
+		const _adresses = await props.contract.methods.getAdresses().call()
+		setAdresses(_adresses)
 
-		const localArray = [...adresses, event.returnValues.voterAddress]
-
-		this.setState({ adresses: localArray })
+		// const localArray = [...adresses,event.returnValues.voterAddress]
+		// setAdresses(localArray)
 	}
 
-
-	render () {
-
-		const { adresses, loading } = this.state
-
-
-		if (loading) return <div>loading authorized accounts...</div>
+	if (loading) return <div>loading authorized accounts...</div>
 		
 
-		return (
+	return (
 	
 			<div style={{ display: 'flex', justifyContent: 'center' }}>
 		
@@ -95,9 +113,7 @@ class AuthorizedAccounts extends Component {
 						</Card.Body>
 					</Card>
 			</div>
-		)
-	
-	}
+	)
 
 }
 

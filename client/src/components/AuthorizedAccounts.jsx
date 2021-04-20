@@ -5,70 +5,76 @@ import { Card, ListGroup, Table } from 'react-bootstrap'
 function AuthorizedAccounts(props) {
 	const [adresses, setAdresses] = useState([])
 	const [loading, setLoading] = useState(true)
-
-	let subId = null
+	const [ws, setWs] = useState(null)
 
 	useEffect(() => {
-		runInit()
+		init()
+
+		subscribe()
+
+		
+		setLoading(false)
+
 		return () => {
-			cleanup()
+
+			if ( !ws) return
+
+			ws.unsubscribe() // if ws !== null then ws.unsubscribe()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	const cleanup = () => {
-		subId.unsubscribe()
+	// useEffect(() => {
+	// 	//subscribe to event Voted
+
+
+	// 	// eslint-disable-next-line react-hooks/exhaustive-deps
+	// }, [])
+
+
+
+	useEffect(() => {
+		 
+		if ( !ws) return
+
+		ws.on('data', (event) => setAdresses([...adresses, event.returnValues.voterAddress]))
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ws])
+
+
+
+	const init = async () => {
+		// récupérer la liste des comptes autorisés
+		const initAddress = await props.contract.methods.getAdresses().call()
+		setAdresses(initAddress)
 	}
 
-	const runInit = async () => {
-		try {
-			// récupérer la liste des comptes autorisés
-			const _adresses = await props.contract.methods.getAdresses().call()
-			// Mettre à jour le state
+	const subscribe = () => {
 
-			//subscribe to event Voted
-			subId = props.contract.events
-				.VoterRegistered(
-					{
-						fromBlock: props.web3.eth.getBlock('latest').number,
-					},
-					function (error, event) {
-						//console.log('event after voted',event)
+		const client = props.contract.events
+			.VoterRegistered(
+				{
+					fromBlock: props.web3.eth.getBlock('latest').number,
+				},
+				function (error, event) {
+					if (error) {
+						console.error(error)
 					}
-				)
-				.on('connected', function (subscriptionId) {})
-				.on('data', (event) => addAuthorizedAccount(event))
-				.on('changed', function (event) {
-					// remove event from local database
-				})
-				.on('error', function (error, receipt) {
-					// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-					console.log('on error', receipt) // same results as the optional callback above
-				})
-
-			setAdresses(_adresses)
-			setLoading(false)
-		} catch (error) {
-			setLoading(false)
-
-			// Catch any errors for any of the above operations.
-			alert(
-				`Non-Ethereum browser detected. Can you please try to install MetaMask before starting.`
+					console.log('event after voted', event)
+				}
 			)
-			console.error(error)
-		}
-	}
 
-	const addAuthorizedAccount = async (event) => {
-		try {
-			const _adresses = await props.contract.methods.getAdresses().call()
-			setAdresses(_adresses)
-		} catch (error) {
-			console.error(error)
-		}
 
-		// const localArray = [...adresses,event.returnValues.voterAddress]
-		// setAdresses(localArray)
+		client.on('connected', () => setWs(client))
+		client.on('changed', function (event) {
+			// remove event from local database
+		})
+		client.on('error', function (error, receipt) {
+			// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+			console.log('on error', receipt) // same results as the optional callback above
+		})
+
+
 	}
 
 	if (loading) return <div>loading authorized accounts...</div>

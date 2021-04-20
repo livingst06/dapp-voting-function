@@ -21109,12 +21109,12 @@
         }
       },
       "links": {},
-      "address": "0x0ADf27644E6F0E3FB77CA57542a050DF94a3c790",
-      "transactionHash": "0xc4f985fa3f7f560f06c18a007abfe284a9fe525f2dc94099bfb30ce532805d68"
+      "address": "0x1a5b38BBF807AABA00ee0386aFCbec94C52B9dBC",
+      "transactionHash": "0xc60f93215d19394cecbb013b7865acdc8208169c4fb71dd6411df1e024cd11bc"
     }
   },
   "schemaVersion": "3.3.4",
-  "updatedAt": "2021-04-19T20:26:11.985Z",
+  "updatedAt": "2021-04-20T21:39:04.220Z",
   "networkType": "ethereum",
   "devdoc": {
     "details": "Implements voting process along with vote delegation",

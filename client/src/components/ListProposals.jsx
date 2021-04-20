@@ -5,80 +5,106 @@ import { Card, ListGroup, Table } from 'react-bootstrap'
 function ListProposals(props) {
 	const [proposals, setProposals] = useState([])
 	const [loading, setLoading] = useState(true)
-
-	let subPropalRegisId = null
-	let subVotedId = null
+	const [wsPropal, setWsPropal] = useState(null)
+	const [wsVote, setWsVote] = useState(null)
+ 
 
 	useEffect(() => {
-		runInit()
+		updatePropal()
+
+		subscribeWsPropal()
+
+		subscribeWsVote()
+
+		setLoading(false)
+
 		return () => {
-			cleanup()
+			
+
+			wsPropal && wsPropal.unsubscribe() 
+
+			wsVote && wsVote.unsubscribe() 
+
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
+ 
 
-	const cleanup = () => {
-		subPropalRegisId.unsubscribe()
-		subVotedId.unsubscribe()
-	}
+	useEffect(() => {
+		 
+		if ( !wsPropal) return
 
-	const runInit = async () => {
-		try {
-			//subscribe to event ProposalRegistered
-			subPropalRegisId = props.contract.events
-				.ProposalRegistered(
-					{
-						fromBlock: props.web3.eth.getBlock('latest').number,
-					},
-					function (error, event) {
-						//console.log('event after registered a proposal',event)
+		wsPropal.on('data', (event) => updatePropal())
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [wsPropal])
+
+
+
+	useEffect(() => {
+		 
+		if ( !wsVote) return
+
+		wsVote.on('data', (event) => updatePropal())
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [wsVote])
+
+
+	const subscribeWsPropal = () => {
+
+		const client = props.contract.events
+			.ProposalRegistered(
+				{
+					fromBlock: props.web3.eth.getBlock('latest').number,
+				},
+				function (error, event) {
+					if (error) {
+						console.error(error)
 					}
-				)
-				.on('connected', function (subscriptionId) {})
-				.on('data', (event) => updatePropal(event))
-				.on('changed', function (event) {
-					// remove event from local database
-				})
-				.on('error', function (error, receipt) {
-					// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-					console.log('on error', receipt) // same results as the optional callback above
-				})
-
-			//subscribe to event Voted
-			subVotedId = props.contract.events
-				.Voted(
-					{
-						fromBlock: props.web3.eth.getBlock('latest').number,
-					},
-					function (error, event) {
-						//console.log('event after voted',event)
-					}
-				)
-				.on('connected', function (subscriptionId) {})
-				.on('data', (event) => updatePropal(event))
-				.on('changed', function (event) {
-					// remove event from local database
-				})
-				.on('error', function (error, receipt) {
-					// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-					console.log('on error', receipt) // same results as the optional callback above
-				})
-
-			// récupérer la liste des comptes autorisés
-			const _proposals = await props.contract.methods.getProposals().call()
-			// Mettre à jour le state
-			setProposals(_proposals)
-			setLoading(false)
-		} catch (error) {
-			setLoading(false)
-
-			// Catch any errors for any of the above operations.
-			alert(
-				`Non-Ethereum browser detected. Can you please try to install MetaMask before starting.`
+					// console.log('event after voted', event)
+				}
 			)
-			console.error(error)
-		}
+
+
+		client.on('connected', () => setWsPropal(client))
+		client.on('changed', function (event) {
+			// remove event from local database
+		})
+		client.on('error', function (error, receipt) {
+			// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+			console.log('on error', receipt) // same results as the optional callback above
+		})
+
+
 	}
+
+	const subscribeWsVote = () => {
+
+		const client = props.contract.events
+			.Voted(
+				{
+					fromBlock: props.web3.eth.getBlock('latest').number,
+				},
+				function (error, event) {
+					if (error) {
+						console.error(error)
+					}
+					console.log('event after voted', event)
+				}
+			)
+
+
+		client.on('connected', () => setWsVote(client))
+		client.on('changed', function (event) {
+			// remove event from local database
+		})
+		client.on('error', function (error, receipt) {
+			// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+			console.log('on error', receipt) // same results as the optional callback above
+		})
+
+
+	}
+
 
 	const updatePropal = async (event) => {
 

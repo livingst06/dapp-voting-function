@@ -8,12 +8,12 @@ function TheWinnerBox(props) {
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
-		runInit()
+		init()
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	const runInit = async () => {
+	const init = async () => {
 		try {
 			setTimeout(async () => {
 				// récupérer la liste des comptes autorisés

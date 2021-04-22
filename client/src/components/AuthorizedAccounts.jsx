@@ -34,9 +34,7 @@ function AuthorizedAccounts(props) {
 
 		return () => {
 
-			if ( !ws) return
-
-			ws.unsubscribe() // if ws !== null then ws.unsubscribe()
+			ws && ws.unsubscribe() // if ws !== null then ws.unsubscribe()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
@@ -46,17 +44,15 @@ function AuthorizedAccounts(props) {
 		 
 		if ( !ws) return
 
-		ws.on('data', (event) => setAdresses([...adresses, event.returnValues.voterAddress]))
+		ws.on('data', (event) => init())
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ws])
-
 
 
 	const init = async () => {
 		// récupérer la liste des comptes autorisés
 		const initAddress = await props.contract.methods.getAdresses().call()
 		setAdresses(initAddress)
-
 		
 		setLoading(false)
 	}

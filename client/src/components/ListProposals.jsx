@@ -47,7 +47,7 @@ function ListProposals(props) {
 					if (error) {
 						console.error(error)
 					}
-					console.log('event after voted', event)
+					// console.log('event after voted', event)
 				}
 			)
 
@@ -64,13 +64,9 @@ function ListProposals(props) {
 		return () => {
 			
 
-			if ( null !== wsPropal ) {
-				wsPropal.unsubscribe()
-			}
+			wsPropal && wsPropal.unsubscribe()
 
-			if ( null !== wsVote ) {
-				wsVote.unsubscribe()
-			}
+			wsVote && wsVote.unsubscribe()
 
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps

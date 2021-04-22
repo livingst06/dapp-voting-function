@@ -64,9 +64,13 @@ function ListProposals(props) {
 		return () => {
 			
 
-			wsPropal && wsPropal.unsubscribe() 
+			if ( null !== wsPropal ) {
+				wsPropal.unsubscribe()
+			}
 
-			wsVote && wsVote.unsubscribe() 
+			if ( null !== wsVote ) {
+				wsVote.unsubscribe()
+			}
 
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps

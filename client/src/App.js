@@ -29,7 +29,9 @@ function App() {
 
 		return () => {
 
-			ws && ws.unsubscribe()
+			if ( !ws) return
+			
+			ws.unsubscribe()
 
 		}
 

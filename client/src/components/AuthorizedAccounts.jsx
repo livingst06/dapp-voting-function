@@ -10,10 +10,27 @@ function AuthorizedAccounts(props) {
 	useEffect(() => {
 		init()
 
-		subscribe()
+		const client = props.contract.events
+		.VoterRegistered(
+			{
+				fromBlock: props.web3.eth.getBlock('latest').number,
+			},
+			function (error, event) {
+				if (error) {
+					console.error(error)
+				}
+				// console.log('event after voted', event)
+			}
+		)
+		client.on('connected', () => setWs(client))
+		client.on('changed', function (event) {
+			// remove event from local database
+		})
+		client.on('error', function (error, receipt) {
+			// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
+			console.log('on error', receipt) // same results as the optional callback above
+		})
 
-		
-		setLoading(false)
 
 		return () => {
 
@@ -23,15 +40,7 @@ function AuthorizedAccounts(props) {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
-
-	// useEffect(() => {
-	// 	//subscribe to event Voted
-
-
-	// 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	// }, [])
-
-
+ 
 
 	useEffect(() => {
 		 
@@ -47,34 +56,9 @@ function AuthorizedAccounts(props) {
 		// récupérer la liste des comptes autorisés
 		const initAddress = await props.contract.methods.getAdresses().call()
 		setAdresses(initAddress)
-	}
 
-	const subscribe = () => {
-
-		const client = props.contract.events
-			.VoterRegistered(
-				{
-					fromBlock: props.web3.eth.getBlock('latest').number,
-				},
-				function (error, event) {
-					if (error) {
-						console.error(error)
-					}
-					console.log('event after voted', event)
-				}
-			)
-
-
-		client.on('connected', () => setWs(client))
-		client.on('changed', function (event) {
-			// remove event from local database
-		})
-		client.on('error', function (error, receipt) {
-			// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
-			console.log('on error', receipt) // same results as the optional callback above
-		})
-
-
+		
+		setLoading(false)
 	}
 
 	if (loading) return <div>loading authorized accounts...</div>

@@ -22,33 +22,29 @@ function App() {
 	const [ owner, setOwner] 		= useState(null)
 	const [ wfs, setWfs] 			= useState(null)
 	const [ loading, setLoading]	= useState(true)
-
-
-	let subId = null
-
+	const [ ws, setWs]				= useState(null)
+ 
 	useEffect(() => {
-		runInit()
+		init()
 
 		return () => {
-			cleanup()
+
+			ws && ws.unsubscribe()
+
 		}
-
-
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
+ 
+	useEffect(() => {
+		 
+		if ( !ws) return
 
+		ws.on('data', (event) => handleWfsChange(event))
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ws])
 
-	const cleanup = () => {
-
-		subId.unsubscribe()
-		
-	}
-
-
-
-
-	const runInit = async () => {
+	const init = async () => {
 				
 		try {
 			// Get network provider and web3 instance.
@@ -75,7 +71,7 @@ function App() {
 
  
 			//subscribe to event Voted
-			subId = _contract.events.WorkflowStatusChange(
+			const client = _contract.events.WorkflowStatusChange(
 				{
 					fromBlock: _web3.eth.getBlock('latest').number,
 				},
@@ -83,17 +79,16 @@ function App() {
 					//console.log('event after voted',event)
 				}
 			)
-			.on('connected', function (subscriptionId) {})
-			.on('data', (event) => handleWfsChange(event))
-			.on('changed', function (event) {
+
+			client.on('connected',  () => setWs(client))
+			client.on('data', (event) => handleWfsChange(event))
+			client.on('changed', function (event) {
 					// remove event from local database
 			})
-			.on('error', function (error, receipt) {
+			client.on('error', function (error, receipt) {
 					// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
 					console.log('on error', receipt) // same results as the optional callback above
 			})
-
-
 
 			setWeb3(_web3)
 			setAccount(_accounts[0])

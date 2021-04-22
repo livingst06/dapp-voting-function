@@ -70,8 +70,6 @@ function App() {
 			const _wfs = await _contract.methods.getWorkFlowStatus().call()
 
 
-
- 
 			//subscribe to event Voted
 			const client = _contract.events.WorkflowStatusChange(
 				{

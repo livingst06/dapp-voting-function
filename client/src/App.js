@@ -37,9 +37,9 @@ function App() {
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
-
-	
  
+
+
 	useEffect(() => {
 		 
 		if (!contract) return 
@@ -68,6 +68,7 @@ function App() {
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [loading])
+
 
 	useEffect(() => {
 		 
@@ -99,7 +100,6 @@ function App() {
 
 			// récupérer le statut etat du vote et le mettre dans le state
 			const _wfs = await _contract.methods.getWorkFlowStatus().call()
-
 
 			setWeb3(_web3)
 			setAccount(_accounts[0])
@@ -262,18 +262,18 @@ function App() {
 
 				<br></br>
 				<br></br>
-				{owner === account && wfs === 'RegisteringVoters' && <AuthorizedAccounts web3={web3} contract={contract} />}
-				{owner !== account && wfs === 'RegisteringVoters' &&<div>waiting for register your proposal --&gt;&gt;&gt;&gt; </div>}
+				{owner === account && wfs === 'RegisteringVoters' ?(<AuthorizedAccounts web3={web3} contract={contract} />):(<div></div>)}
+				{owner !== account && wfs === 'RegisteringVoters' ?(<div>waiting for register your proposal --&gt;&gt;&gt;&gt; </div>):(<div></div>)}
 				<br></br>
-				{wfs !== 'RegisteringVoters' && <ListProposals web3={web3} contract={contract} />}
+				{wfs !== 'RegisteringVoters' ?<ListProposals web3={web3} contract={contract} />:''}
 				<br></br>
-				{owner === account && wfs === 'RegisteringVoters' && <AuthorizeAccount  contract={contract} account={account} />}
+				{owner === account && wfs === 'RegisteringVoters' ?	<AuthorizeAccount  contract={contract} account={account} />:''}
 				<br></br>
-				{wfs === 'ProposalsRegistrationStarted' && <MakeProposal  contract={contract} account={account} />}
+				{wfs === 'ProposalsRegistrationStarted' ? <MakeProposal  contract={contract} account={account} />:''}
 				<br></br>
-				{wfs === 'VotingSessionStarted' && <VoteFor contract={contract} account={account}/>}
+				{wfs === 'VotingSessionStarted' ? <VoteFor contract={contract} account={account}/>:''}
 				<br></br>
-				{wfs === 'VotesTallied' && <TheWinnerBox contract={contract} />}
+				{wfs === 'VotesTallied' ? <TheWinnerBox contract={contract} />:''}
 			</div>
 	)
 	

@@ -262,18 +262,18 @@ function App() {
 
 				<br></br>
 				<br></br>
-				{owner === account && wfs === 'RegisteringVoters' ?(<AuthorizedAccounts web3={web3} contract={contract} />):(<div></div>)}
-				{owner !== account && wfs === 'RegisteringVoters' ?(<div>waiting for register your proposal --&gt;&gt;&gt;&gt; </div>):(<div></div>)}
+				{owner === account && wfs === 'RegisteringVoters' && <AuthorizedAccounts web3={web3} contract={contract} />}
+				{owner !== account && wfs === 'RegisteringVoters' && <div>waiting for register your proposal --&gt;&gt;&gt;&gt; </div>}
 				<br></br>
-				{wfs !== 'RegisteringVoters' ?<ListProposals web3={web3} contract={contract} />:''}
+				{wfs !== 'RegisteringVoters' && <ListProposals web3={web3} contract={contract} />}
 				<br></br>
-				{owner === account && wfs === 'RegisteringVoters' ?	<AuthorizeAccount  contract={contract} account={account} />:''}
+				{owner === account && wfs === 'RegisteringVoters' && <AuthorizeAccount  contract={contract} account={account} />}
 				<br></br>
-				{wfs === 'ProposalsRegistrationStarted' ? <MakeProposal  contract={contract} account={account} />:''}
+				{wfs === 'ProposalsRegistrationStarted' && <MakeProposal  contract={contract} account={account} />}
 				<br></br>
-				{wfs === 'VotingSessionStarted' ? <VoteFor contract={contract} account={account}/>:''}
+				{wfs === 'VotingSessionStarted' && <VoteFor contract={contract} account={account}/>}
 				<br></br>
-				{wfs === 'VotesTallied' ? <TheWinnerBox contract={contract} />:''}
+				{wfs === 'VotesTallied' && <TheWinnerBox contract={contract} />}
 			</div>
 	)
 	

@@ -14,7 +14,9 @@ function AuthorizedAccounts(props) {
 
 		return () => {
 
-			ws && ws.unsubscribe() // if ws !== null then ws.unsubscribe()
+			if ( !ws ) return
+			
+			ws.unsubscribe() // if ws !== null then ws.unsubscribe()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])

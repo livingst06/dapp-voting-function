@@ -12,21 +12,36 @@ function ListProposals(props) {
 	useEffect(() => {
 		updatePropal()
 
-		const _wsPropal = props.contract.events
-			.ProposalRegistered(
-				{
-					fromBlock: props.web3.eth.getBlock('latest').number,
-				},
-				function (error, event) {
-					if (error) {
-						console.error(error)
-					}
-					// console.log('event after voted', event)
-				}
-			)
 
 
+		return () => {
 			
+
+			wsPropal && wsPropal.unsubscribe()
+
+			wsVote && wsVote.unsubscribe()
+
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+ 
+
+
+	useEffect(() => {
+		 
+		const _wsPropal = props.contract.events
+		.ProposalRegistered(
+			{
+				fromBlock: props.web3.eth.getBlock('latest').number,
+			},
+			function (error, event) {
+				if (error) {
+					console.error(error)
+				}
+				// console.log('event after voted', event)
+			}
+		)
+
 		_wsPropal.on('connected', () => setWsPropal(_wsPropal))
 		_wsPropal.on('changed', function (event) {
 			// remove event from local database
@@ -61,17 +76,11 @@ function ListProposals(props) {
 			console.log('on error', receipt) // same results as the optional callback above
 		})
  
-		return () => {
-			
 
-			wsPropal && wsPropal.unsubscribe()
 
-			wsVote && wsVote.unsubscribe()
 
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
- 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [loading])
 
 	useEffect(() => {
 		 

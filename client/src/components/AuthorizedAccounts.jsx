@@ -10,6 +10,18 @@ function AuthorizedAccounts(props) {
 	useEffect(() => {
 		init()
 
+
+
+		return () => {
+
+			ws && ws.unsubscribe() // if ws !== null then ws.unsubscribe()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+ 
+	useEffect(() => {
+		 
+
 		const client = props.contract.events
 		.VoterRegistered(
 			{
@@ -30,22 +42,20 @@ function AuthorizedAccounts(props) {
 			// If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
 			console.log('on error', receipt) // same results as the optional callback above
 		})
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [loading])
 
 
-		return () => {
-
-			ws && ws.unsubscribe() // if ws !== null then ws.unsubscribe()
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
- 
 
 	useEffect(() => {
-		 
-		if ( !ws) return
 
-		ws.on('data', (event) => init())
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		let mounted = true
+		 
+		// ws.on('data', (event) => setAdresses([...adresses, event.returnValues.voterAddress]))
+		mounted && ws && ws.on('data', (event) => setAdresses([...adresses, event.returnValues.voterAddress]))
+
+		return () => mounted = false
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ws])
 
 

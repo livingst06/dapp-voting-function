@@ -181,7 +181,9 @@ function App() {
 
 		switch (status) {
 			case 'RegisteringVoters':
-				await contractRef.current.methods.startRegisteringVoters().send({ from: account })
+				await contractRef.current.methods
+					.startRegisteringVoters()
+					.send({ from: account })
 				break
 			case 'ProposalsRegistrationStarted':
 				await contractRef.current.methods
@@ -194,10 +196,14 @@ function App() {
 					.send({ from: account })
 				break
 			case 'VotingSessionStarted':
-				await contractRef.current.methods.startVotingSession().send({ from: account })
+				await contractRef.current.methods
+					.startVotingSession()
+					.send({ from: account })
 				break
 			case 'VotingSessionEnded':
-				await contractRef.current.methods.stopVotingSession().send({ from: account })
+				await contractRef.current.methods
+					.stopVotingSession()
+					.send({ from: account })
 				break
 			case 'VotesTallied':
 				// Afficher le div qui affiche le gagnant
@@ -240,7 +246,10 @@ function App() {
 			<br></br>
 			<br></br>
 			{ownerRef.current === account && wfs === 'RegisteringVoters' && (
-				<AuthorizedAccounts web3={web3Ref.current} contract={contractRef.current} />
+				<AuthorizedAccounts
+					web3={web3Ref.current}
+					contract={contractRef.current}
+				/>
 			)}
 			{ownerRef.current !== account && wfs === 'RegisteringVoters' && (
 				<div>waiting for register your proposal --&gt;&gt;&gt;&gt; </div>
@@ -262,7 +271,9 @@ function App() {
 				<VoteFor contract={contractRef.current} account={account} />
 			)}
 			<br></br>
-			{wfs === 'VotesTallied' && <TheWinnerBox contract={contractRef.current} />}
+			{wfs === 'VotesTallied' && (
+				<TheWinnerBox contract={contractRef.current} />
+			)}
 		</div>
 	)
 }

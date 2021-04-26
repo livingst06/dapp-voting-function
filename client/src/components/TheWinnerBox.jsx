@@ -3,19 +3,19 @@ import React, { useState, useEffect, useRef } from 'react'
 
 import { Card, Table } from 'react-bootstrap'
 
-function useIsMountedRef(){
-	const isMountedRef = useRef(null);
+function useIsMountedRef() {
+	const isMountedRef = useRef(null)
 	useEffect(() => {
-	  isMountedRef.current = true;
-	  return () => isMountedRef.current = false;
-	});
-	return isMountedRef;
+		isMountedRef.current = true
+		return () => (isMountedRef.current = false)
+	})
+	return isMountedRef
 }
 
 function TheWinnerBox(props) {
 	const [theWinner, setTheWinner] = useState('')
 	const [loading, setLoading] = useState(true)
-	const isMountedRef = useIsMountedRef();
+	const isMountedRef = useIsMountedRef()
 
 	useEffect(() => {
 		init()
@@ -33,10 +33,12 @@ function TheWinnerBox(props) {
 				isMountedRef.current && setLoading(false)
 			}, 3000)
 		} catch (error) {
-			setLoading(false)
+			isMountedRef.current && setLoading(false)
 
 			// Catch any errors for any of the above operations.
-			alert('Non-Ethereum browser detected. Can you please try to install MetaMask before starting.')
+			alert(
+				'Non-Ethereum browser detected. Can you please try to install MetaMask before starting.'
+			)
 			console.error(error)
 		}
 	}

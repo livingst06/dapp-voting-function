@@ -1,23 +1,34 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Card, Form, Button } from 'react-bootstrap'
 
-function VoteFor(props) {
-	const [proposals, setProposals] = useState([])
+function useIsMountedRef() {
+	const isMountedRef = useRef(null)
+	useEffect(() => {
+		isMountedRef.current = true
+		return () => (isMountedRef.current = false)
+	})
+	return isMountedRef
+}
 
+function VoteFor(props) {
+
+	const [proposals, setProposals] = useState([])
 	const [index, setIndex] = useState(-1)
 
+	const isMountedRef = useIsMountedRef()
+
 	useEffect(() => {
-		runInit()
+		init()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	const runInit = async () => {
+	const init = async () => {
 		try {
 			// récupérer la liste des propositions
 			const _proposals = await props.contract.methods.getProposals().call()
 			// Mettre à jour le state
-			setProposals(_proposals)
+			isMountedRef.current && setProposals(_proposals)
 		} catch (error) {
 			// Catch any errors for any of the above operations.
 			alert(
@@ -28,7 +39,7 @@ function VoteFor(props) {
 	}
 
 	const handleChange = (e) => {
-		setIndex(e.target.value)
+		isMountedRef.current && setIndex(e.target.value)
 	}
 
 	const handleClick = async (event) => {

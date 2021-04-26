@@ -36,15 +36,9 @@ function App() {
 	const isMountedRef = useIsMountedRef();
 
 	useEffect(() => {
-		isMountedRef.current && init()
+		init()
 
-		return () => {
-
-			if ( !ws) return
-			
-			ws.unsubscribe()
-
-		}
+		return () => ws && ws.unsubscribe()
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
@@ -82,9 +76,7 @@ function App() {
 
 	useEffect(() => {
 		 
-		if ( !ws) return
-
-		ws.on('data', (event) => isMountedRef.current && handleWfsChange(event))
+		ws && ws.on('data', (event) => handleWfsChange(event))
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ws])
 
@@ -197,7 +189,7 @@ function App() {
 		} catch (error) {
 			// Remettre le toggle a previous
 			//document.getElementById('radioToggle').value = previous
-			setLoading(false)
+			isMountedRef.current && setLoading(false)
 		}
 	}
 

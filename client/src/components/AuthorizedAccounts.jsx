@@ -18,13 +18,11 @@ function AuthorizedAccounts(props) {
 	const isMountedRef = useIsMountedRef();
 
 	useEffect(() => {
-		isMountedRef.current && init()
+		init()
 
 		return () => {
 
-			if ( !ws ) return
-			
-			ws.unsubscribe() // if ws !== null then ws.unsubscribe()
+			ws && ws.unsubscribe() // if ws !== null then ws.unsubscribe()
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
@@ -63,7 +61,7 @@ function AuthorizedAccounts(props) {
 		if ( !ws) return
 
 		// ws.on('data', (event) => setAdresses([...adresses, event.returnValues.voterAddress]))
-		ws.on('data', (event) => isMountedRef.current && init())
+		ws.on('data', (event) => init())
  
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ws])

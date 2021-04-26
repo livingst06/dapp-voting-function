@@ -1,11 +1,21 @@
 import 'bootstrap/dist/css/bootstrap.min.css'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { Card, Table } from 'react-bootstrap'
+
+function useIsMountedRef(){
+	const isMountedRef = useRef(null);
+	useEffect(() => {
+	  isMountedRef.current = true;
+	  return () => isMountedRef.current = false;
+	});
+	return isMountedRef;
+}
 
 function TheWinnerBox(props) {
 	const [theWinner, setTheWinner] = useState('')
 	const [loading, setLoading] = useState(true)
+	const isMountedRef = useIsMountedRef();
 
 	useEffect(() => {
 		init()
@@ -19,8 +29,8 @@ function TheWinnerBox(props) {
 				// récupérer la liste des comptes autorisés
 				const _theWinner = await props.contract.methods.winnerName().call()
 				// Mettre à jour le state
-				setTheWinner(_theWinner)
-				setLoading(false)
+				isMountedRef.current && setTheWinner(_theWinner)
+				isMountedRef.current && setLoading(false)
 			}, 3000)
 		} catch (error) {
 			setLoading(false)

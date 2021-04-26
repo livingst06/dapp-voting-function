@@ -19,17 +19,18 @@ function ListProposals(props) {
 	const isMountedRef = useIsMountedRef();
 
 	useEffect(() => {
-		isMountedRef.current && updatePropal()
+		updatePropal()
 
 		return () => {
 			
 
-			if (wsPropal) { wsPropal.unsubscribe() }
+			wsPropal && wsPropal.unsubscribe()
 
-			if (wsVote) { wsVote.unsubscribe() }
+			wsVote && wsVote.unsubscribe()
 
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
  
 
@@ -74,8 +75,8 @@ function ListProposals(props) {
 			)
 
 
-		_wsVote.on('connected', () => isMountedRef.current && setWsVote(_wsVote))
-		_wsVote.on('changed', function (event) {
+			_wsVote.on('connected', () => isMountedRef.current && setWsVote(_wsVote))
+			_wsVote.on('changed', function (event) {
 			// remove event from local database
 		})
 		_wsVote.on('error', function (error, receipt) {
@@ -93,7 +94,7 @@ function ListProposals(props) {
 		 
 		if ( !wsPropal) return
 
-		wsPropal.on('data', (event) => isMountedRef.current && updatePropal())
+		wsPropal.on('data', (event) => updatePropal())
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [wsPropal])
 
@@ -101,7 +102,7 @@ function ListProposals(props) {
 		 
 		if ( !wsVote) return
 
-		wsVote.on('data', (event) => isMountedRef.current && updatePropal())
+		wsVote.on('data', (event) => updatePropal())
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [wsVote])
 

@@ -1,16 +1,24 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { Card, ListGroup, Table } from 'react-bootstrap'
+
+function useIsMountedRef(){
+	const isMountedRef = useRef(null);
+	useEffect(() => {
+	  isMountedRef.current = true;
+	  return () => isMountedRef.current = false;
+	});
+	return isMountedRef;
+}
 
 function AuthorizedAccounts(props) {
 	const [adresses, setAdresses] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [ws, setWs] = useState(null)
+	const isMountedRef = useIsMountedRef();
 
 	useEffect(() => {
-		init()
-
-
+		isMountedRef.current && init()
 
 		return () => {
 
@@ -36,7 +44,7 @@ function AuthorizedAccounts(props) {
 				// console.log('event after voted', event)
 			}
 		)
-		client.on('connected', () => setWs(client))
+		client.on('connected', () => isMountedRef.current && setWs(client))
 		client.on('changed', function (event) {
 			// remove event from local database
 		})
@@ -51,22 +59,20 @@ function AuthorizedAccounts(props) {
 
 	useEffect(() => {
 
-		let mounted = true
-		 
-		// ws.on('data', (event) => setAdresses([...adresses, event.returnValues.voterAddress]))
-		mounted && ws && ws.on('data', (event) => setAdresses([...adresses, event.returnValues.voterAddress]))
 
-		return () => mounted = false
+		if ( !ws) return
+
+		// ws.on('data', (event) => setAdresses([...adresses, event.returnValues.voterAddress]))
+		ws.on('data', (event) => isMountedRef.current && init())
+ 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ws])
-
-
+ 
 	const init = async () => {
 		// récupérer la liste des comptes autorisés
 		const initAddress = await props.contract.methods.getAdresses().call()
-		setAdresses(initAddress)
-		
-		setLoading(false)
+		isMountedRef.current && setAdresses(initAddress)
+		isMountedRef.current && setLoading(false)
 	}
 
 	if (loading) return <div>loading authorized accounts...</div>

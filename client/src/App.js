@@ -1,7 +1,7 @@
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {ButtonGroup,ToggleButton} from 'react-bootstrap'
 
 import Voting from './contracts/Voting.json'
@@ -14,6 +14,15 @@ import AuthorizeAccount from './components/AuthorizeAccount'
 import VoteFor from './components/VoteFor'
 import TheWinnerBox from './components/TheWinnerBox'
 
+function useIsMountedRef(){
+	const isMountedRef = useRef(null);
+	useEffect(() => {
+	  isMountedRef.current = true;
+	  return () => isMountedRef.current = false;
+	});
+	return isMountedRef;
+}
+
 function App() {
 	
 	const [ web3, setWeb3] 			= useState(null)
@@ -23,9 +32,11 @@ function App() {
 	const [ wfs, setWfs] 			= useState(null)
 	const [ loading, setLoading]	= useState(true)
 	const [ ws, setWs]				= useState(null)
- 
+	
+	const isMountedRef = useIsMountedRef();
+
 	useEffect(() => {
-		init()
+		isMountedRef.current && init()
 
 		return () => {
 
@@ -56,8 +67,7 @@ function App() {
 			}
 		)
 
-		client.on('connected',  () => setWs(client))
-		client.on('data', (event) => handleWfsChange(event))
+		client.on('connected',  () => isMountedRef.current && setWs(client))
 		client.on('changed', function (event) {
 				// remove event from local database
 		})
@@ -74,7 +84,7 @@ function App() {
 		 
 		if ( !ws) return
 
-		ws.on('data', (event) => handleWfsChange(event))
+		ws.on('data', (event) => isMountedRef.current && handleWfsChange(event))
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ws])
 
@@ -101,12 +111,12 @@ function App() {
 			// récupérer le statut etat du vote et le mettre dans le state
 			const _wfs = await _contract.methods.getWorkFlowStatus().call()
 
-			setWeb3(_web3)
-			setAccount(_accounts[0])
-			setContract(_contract)
-			setWfs(_wfs)
-			setOwner(_owner)
-			setLoading(false)
+			isMountedRef.current && setWeb3(_web3)
+			isMountedRef.current && setAccount(_accounts[0])
+			isMountedRef.current && setContract(_contract)
+			isMountedRef.current && setWfs(_wfs)
+			isMountedRef.current && setOwner(_owner)
+			isMountedRef.current && setLoading(false)
 
 		} catch (error) {
 			// Catch any errors for any of the above operations.
@@ -114,7 +124,7 @@ function App() {
 				`Non-Ethereum browser detected. Can you please try to install MetaMask before starting.`
 			)
 			console.error(error)
-			setLoading(false)
+			isMountedRef.current && setLoading(false)
 		}
 
 	}
@@ -123,22 +133,22 @@ function App() {
 		
 		switch (parseInt(event.returnValues.newStatus)) {
 			case 0:
-				setWfs('RegisteringVoters')
+				isMountedRef.current && setWfs('RegisteringVoters')
 				break
 			case 1:
-				setWfs('ProposalsRegistrationStarted')
+				isMountedRef.current && setWfs('ProposalsRegistrationStarted')
 				break
 			case 2:
-				setWfs('ProposalsRegistrationEnded')
+				isMountedRef.current && setWfs('ProposalsRegistrationEnded')
 				break
 			case 3:
-				setWfs('VotingSessionStarted')
+				isMountedRef.current && setWfs('VotingSessionStarted')
 				break
 			case 4:
-				setWfs('VotingSessionEnded')
+				isMountedRef.current && setWfs('VotingSessionEnded')
 				break
 			case 5:
-				setWfs('VotesTallied')
+				isMountedRef.current && setWfs('VotesTallied')
 				break
 			default:
 				break
@@ -178,12 +188,12 @@ function App() {
 		const targetting = event.currentTarget.value
 
 		try {
-			setLoading(true)
+			isMountedRef.current && setLoading(true)
 
 			await updateVotingProcess(targetting)
 
-			setWfs(targetting)
-			setLoading(false)
+			isMountedRef.current && setWfs(targetting)
+			isMountedRef.current && setLoading(false)
 		} catch (error) {
 			// Remettre le toggle a previous
 			//document.getElementById('radioToggle').value = previous
@@ -265,7 +275,7 @@ function App() {
 				{owner === account && wfs === 'RegisteringVoters' && <AuthorizedAccounts web3={web3} contract={contract} />}
 				{owner !== account && wfs === 'RegisteringVoters' && <div>waiting for register your proposal --&gt;&gt;&gt;&gt; </div>}
 				<br></br>
-				{wfs !== 'RegisteringVoters' && <ListProposals web3={web3} contract={contract} />}
+				{wfs !== 'RegisteringVoters' && isMountedRef.current && <ListProposals web3={web3} contract={contract} />}
 				<br></br>
 				{owner === account && wfs === 'RegisteringVoters' && <AuthorizeAccount  contract={contract} account={account} />}
 				<br></br>

@@ -1,25 +1,32 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import { Card, ListGroup, Table } from 'react-bootstrap'
+
+function useIsMountedRef(){
+	const isMountedRef = useRef(null);
+	useEffect(() => {
+	  isMountedRef.current = true;
+	  return () => isMountedRef.current = false;
+	});
+	return isMountedRef;
+}
 
 function ListProposals(props) {
 	const [proposals, setProposals] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [wsPropal, setWsPropal] = useState(null)
 	const [wsVote, setWsVote] = useState(null)
- 
+	const isMountedRef = useIsMountedRef();
 
 	useEffect(() => {
-		updatePropal()
-
-
+		isMountedRef.current && updatePropal()
 
 		return () => {
 			
 
-			wsPropal && wsPropal.unsubscribe()
+			if (wsPropal) { wsPropal.unsubscribe() }
 
-			wsVote && wsVote.unsubscribe()
+			if (wsVote) { wsVote.unsubscribe() }
 
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -42,7 +49,7 @@ function ListProposals(props) {
 			}
 		)
 
-		_wsPropal.on('connected', () => setWsPropal(_wsPropal))
+		_wsPropal.on('connected', () => isMountedRef.current && setWsPropal(_wsPropal))
 		_wsPropal.on('changed', function (event) {
 			// remove event from local database
 		})
@@ -67,7 +74,7 @@ function ListProposals(props) {
 			)
 
 
-		_wsVote.on('connected', () => setWsVote(_wsVote))
+		_wsVote.on('connected', () => isMountedRef.current && setWsVote(_wsVote))
 		_wsVote.on('changed', function (event) {
 			// remove event from local database
 		})
@@ -86,7 +93,7 @@ function ListProposals(props) {
 		 
 		if ( !wsPropal) return
 
-		wsPropal.on('data', (event) => updatePropal())
+		wsPropal.on('data', (event) => isMountedRef.current && updatePropal())
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [wsPropal])
 
@@ -94,15 +101,15 @@ function ListProposals(props) {
 		 
 		if ( !wsVote) return
 
-		wsVote.on('data', (event) => updatePropal())
+		wsVote.on('data', (event) => isMountedRef.current && updatePropal())
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [wsVote])
 
 	const updatePropal = async (event) => {
 
 		const _proposals = await props.contract.methods.getProposals().call()
-		setProposals(_proposals)
-		setLoading(false)
+		isMountedRef.current && setProposals(_proposals)
+		isMountedRef.current && setLoading(false)
 
 	}
 

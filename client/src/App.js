@@ -28,8 +28,8 @@ function App() {
 	const [wfs, setWfs] = useState(null)
 	const [loading, setLoading] = useState(true)
 	const [ws, setWs] = useState(null)
+	const [web3, setWeb3] = useState(null)
 
-	const web3Ref = useRef(null)
 	const ownerRef = useRef(null)
 	const contractRef = useRef(null)
 	const isMountedRef = useIsMountedRef()
@@ -43,12 +43,12 @@ function App() {
 	useEffect(() => {
 		if (!contractRef) return
 
-		if (!web3Ref.current) return
+		if (!web3) return
 
 		//subscribe to event Voted
 		const client = contractRef.current.events.WorkflowStatusChange(
 			{
-				fromBlock: web3Ref.current.eth.getBlock('latest').number,
+				fromBlock: web3.eth.getBlock('latest').number,
 			},
 			function (error, event) {
 				//console.log('event after voted',event)
@@ -67,6 +67,18 @@ function App() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [loading])
 
+
+ 
+	useEffect(() => {
+		//detect account change
+		web3 && web3.currentProvider.on('accountsChanged', (accounts) => handleAccountChange(accounts))
+
+		// detect Network account change
+		web3 && web3.currentProvider.on('chainChanged', (chainId) => handleNetworkIdChange(chainId))
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [web3])
+
 	useEffect(() => {
 		ws && ws.on('data', (event) => handleWfsChange(event))
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,25 +87,37 @@ function App() {
 	const init = async () => {
 		try {
 			// Get network provider and web3 instance.
-			web3Ref.current = await getWeb3()
+			const _web3 = await getWeb3()
+			isMountedRef.current && setWeb3(_web3)
+
 
 			// set the current account
-			const _accounts = await web3Ref.current.eth.getAccounts()
+			const _accounts = await _web3.eth.getAccounts()
+			isMountedRef.current && setAccount(_accounts[0])
 
 			// Get the contract instance.
-			const networkId = await web3Ref.current.eth.net.getId()
+			const networkId = await _web3.eth.net.getId()
+
+			if (!networkId) return
+
+
 			const deployedNetwork = Voting.networks[networkId]
-			contractRef.current = new web3Ref.current.eth.Contract(
+
+			if (!deployedNetwork) return
+
+			contractRef.current = new _web3.eth.Contract(
 				Voting.abi,
 				deployedNetwork && deployedNetwork.address
 			)
+
+
+			if (!contractRef.current) return
 
 			ownerRef.current = await contractRef.current.methods.owner().call()
 
 			// récupérer le statut etat du vote et le mettre dans le state
 			const _wfs = await contractRef.current.methods.getWorkFlowStatus().call()
 
-			isMountedRef.current && setAccount(_accounts[0])
 			isMountedRef.current && setWfs(_wfs)
 			isMountedRef.current && setLoading(false)
 		} catch (error) {
@@ -105,6 +129,37 @@ function App() {
 			isMountedRef.current && setLoading(false)
 		}
 	}
+
+
+
+	const handleAccountChange = (accounts) => setAccount(accounts[0])
+
+
+
+	const handleNetworkIdChange = async (chainId) => {
+
+			if (!web3) return 
+
+			const deployedNetwork = Voting.networks[chainId]
+
+			if (!deployedNetwork) return
+
+			contractRef.current = new web3.eth.Contract(
+				Voting.abi,
+				deployedNetwork && deployedNetwork.address
+			)
+			
+			if (!contractRef.current) return
+
+			ownerRef.current = await contractRef.current.methods.owner().call()
+
+			// récupérer le statut etat du vote et le mettre dans le state
+			const _wfs = await contractRef.current.methods.getWorkFlowStatus().call()
+
+			isMountedRef.current && setWfs(_wfs)
+		
+	}
+
 
 	const handleWfsChange = (event) => {
 		switch (parseInt(event.returnValues.newStatus)) {
@@ -214,7 +269,7 @@ function App() {
 		}
 	}
 
-	if (!web3Ref.current) {
+	if (!web3) {
 		return <div>please connect to metamask</div>
 	}
 
@@ -247,7 +302,7 @@ function App() {
 			<br></br>
 			{ownerRef.current === account && wfs === 'RegisteringVoters' && (
 				<AuthorizedAccounts
-					web3={web3Ref.current}
+					web3={web3}
 					contract={contractRef.current}
 				/>
 			)}
@@ -256,7 +311,7 @@ function App() {
 			)}
 			<br></br>
 			{wfs !== 'RegisteringVoters' && isMountedRef.current && (
-				<ListProposals web3={web3Ref.current} contract={contractRef.current} />
+				<ListProposals web3={web3} contract={contractRef.current} />
 			)}
 			<br></br>
 			{ownerRef.current === account && wfs === 'RegisteringVoters' && (

@@ -1,4 +1,3 @@
-const { BN, ether } = require('@openzeppelin/test-helpers')
 const { expect } = require('chai')
 const Voting = artifacts.require('Voting')
 contract('Voting', function (accounts) {
@@ -20,47 +19,56 @@ contract('Voting', function (accounts) {
 	/********************************** */
 
 	it('initial state of Smart Contract Voting has to be RegisteringVoters', async function () {
-		expect(await this.VotingInstance.getWorkFlowStatus()).to.equal(
-			'RegisteringVoters'
-		)
+		expect(await this.VotingInstance.getWorkFlowStatus()).to.equal('RegisteringVoters')
 	})
 
 	it('at beginning there is no proposals', async function () {
 		expect(await this.VotingInstance.getProposals()).to.have.lengthOf(0)
 	})
 
-	return
+	it('at beginning there is no authorized voters in whitelist', async function () {
+		expect(await this.VotingInstance.getAdresses()).to.have.lengthOf(0)
+	})
 
-	it('a un symbole', async function () {
-		expect(await this.VotingInstance.symbol()).to.equal(_symbol)
+	it('at registeringVoter status , owner can add voter 1 in whitelist', async function () {
+		expect(await this.VotingInstance.getAdresses()).to.have.lengthOf(0)
+		await this.VotingInstance.startRegisteringVoters()
+		await this.VotingInstance.registerVoter(voter1, { from: owner })
+		expect(await this.VotingInstance.getAdresses()).to.have.lengthOf(1)
 	})
-	it('a une valeur décimal', async function () {
-		expect(await this.VotingInstance.decimals()).to.be.bignumber.equal(
-			_decimals
-		)
-	})
-	it('vérifie la balance du propriétaire du contrat', async function () {
-		let balanceOwner = await this.VotingInstance.balanceOf(owner)
-		let totalSupply = await this.VotingInstance.totalSupply()
-		expect(balanceOwner).to.be.bignumber.equal(totalSupply)
-	})
-	it('vérifie si un transfer est bien effectué', async function () {
-		let balanceOwnerBeforeTransfer = await this.VotingInstance.balanceOf(owner)
-		let balanceRecipientBeforeTransfer = await this.VotingInstance.balanceOf(
-			recipient
-		)
-		let amount = new BN(10)
-		await this.VotingInstance.transfer(recipient, amount, { from: owner })
-		let balanceOwnerAfterTransfer = await this.VotingInstance.balanceOf(owner)
-		let balanceRecipientAfterTransfer = await this.VotingInstance.balanceOf(
-			recipient
-		)
 
-		expect(balanceOwnerAfterTransfer).to.be.bignumber.equal(
-			balanceOwnerBeforeTransfer.sub(amount)
-		)
-		expect(balanceRecipientAfterTransfer).to.be.bignumber.equal(
-			balanceRecipientBeforeTransfer.add(amount)
-		)
+	it('an authorized account can make a proposal', async function () {
+		await this.VotingInstance.startRegisteringVoters()
+		await this.VotingInstance.registerVoter(voter1, { from: owner })
+		await this.VotingInstance.startProposalRegistration()
+		await this.VotingInstance.giveProposal('mike Tyson', { from: voter1 })
+
+		expect(await this.VotingInstance.getProposals()).to.have.lengthOf(1)
+	})
+
+	it('an authorized account can vote for a registered proposal', async function () {
+		await this.VotingInstance.startRegisteringVoters()
+		await this.VotingInstance.registerVoter(voter1, { from: owner })
+		await this.VotingInstance.startProposalRegistration()
+		await this.VotingInstance.giveProposal('mike Tyson', { from: voter1 })
+
+		expect(await this.VotingInstance.getProposals()).to.have.lengthOf(1)
+	})
+
+	it('The proposal that received the most votes wins', async function () {
+		await this.VotingInstance.startRegisteringVoters()
+		await this.VotingInstance.registerVoter(voter1, { from: owner })
+		await this.VotingInstance.registerVoter(voter2, { from: owner })
+
+		await this.VotingInstance.startProposalRegistration()
+		await this.VotingInstance.giveProposal('trump', { from: voter1 })
+		await this.VotingInstance.giveProposal('biden', { from: voter2 })
+
+		await this.VotingInstance.startVotingSession()
+		await this.VotingInstance.vote(1, { from: voter1 })
+		await this.VotingInstance.vote(1, { from: voter2 })
+
+		expect(await this.VotingInstance.getProposals()).to.have.lengthOf(2)
+		expect(await this.VotingInstance.winnerName()).to.equal('biden')
 	})
 })
